@@ -18,6 +18,9 @@ fargateProfiles:
   - name: appmesh-system
     selectors:
       - namespace: appmesh-system
+  - name: aws-system
+    selectors:
+      - namespace: aws-system
 
 iam:
   # serviceRoleARN: arn:aws:iam::534014647921:role/EKSClusterRole
@@ -35,6 +38,11 @@ iam:
       attachPolicyARNs:
         - arn:aws:iam::aws:policy/AWSCloudMapFullAccess
         - arn:aws:iam::aws:policy/AWSAppMeshFullAccess
+    - metadata:
+        name: aws-lb-controller
+        namespace: aws-system
+      attachPolicyARNs:
+        -  arn:aws:iam::365268860483:policy/AWSLoadBalancerControllerIAMPolicy
 
 addOns:
   - name: vpc-cni
