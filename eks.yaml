@@ -1,0 +1,71 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: rstudio
+  region: us-east-2
+  version: "1.21"
+
+fargateProfiles:
+  - name: fp-default
+    selectors:
+      - namespace: default
+      - namespace: kube-system
+      - namespace: rstudio
+  - name: flux-system
+    selectors:
+      - namespace: flux-system
+  - name: appmesh-system
+    selectors:
+      - namespace: appmesh-system
+
+iam:
+  # serviceRoleARN: arn:aws:iam::534014647921:role/EKSClusterRole
+  # fargatePodExecutionRoleARN: arn:aws:iam::534014647921:role/EKSFargatePodRole
+  withOIDC: true
+  serviceAccounts:
+    - metadata:
+        name: efs-csi-controller-sa
+        namespace: kube-system
+      attachPolicyARNs: 
+        - arn:aws:iam::365268860483:policy/AmazonEKS_EFS_CSI_Driver_Policy
+    - metadata:
+        name: appmesh-controller
+        namespace: appmesh-system
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AWSCloudMapFullAccess
+        - arn:aws:iam::aws:policy/AWSAppMeshFullAccess
+
+addOns:
+  - name: vpc-cni
+  - name: kube-proxy
+  - name: core-dns
+  - name: aws-ebs-csi-driver
+    wellKnownPolicies:
+      autoScaler: true
+      externalDNS: true
+      awsLoadBalancerController: true
+      certManager: true
+      ebsCSIController: true
+      efsCSICOntroller: true
+
+  # nat:
+  #   gateway: Disable
+    # clusterEndpoints:
+    #   privateAccess: true
+    #   publicAccess: false
+
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["*"]
+
+gitops:
+  flux:
+    gitProvider: github
+    flags:
+      owner: "walkermiller"
+      repository: "eks-sample-deploy"
+      private: "false"
+      branch: main
+      namespace: flux-system
+      path: clusters/rstudio
