@@ -1,0 +1,7 @@
+Resources:
+  EFSFilesystem:
+    Type: AWS::EFS::FileSystem
+    Properties: 
+      BackupPolicy: 
+        Status: ENABLED
+      Encrypted: True

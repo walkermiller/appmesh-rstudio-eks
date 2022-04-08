@@ -21,6 +21,9 @@ fargateProfiles:
   - name: aws-system
     selectors:
       - namespace: aws-system
+  - name: cert-manager
+    selectors:
+      - namespace: cert-manager
 
 iam:
   # serviceRoleARN: arn:aws:iam::534014647921:role/EKSClusterRole
