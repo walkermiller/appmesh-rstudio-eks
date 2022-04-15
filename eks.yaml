@@ -7,27 +7,26 @@ metadata:
   version: "1.21"
 
 fargateProfiles:
-  - name: fp-default
+  - name: kube-system
     selectors:
-      - namespace: default
       - namespace: kube-system
+  - name: rstudio
+    selectors:
       - namespace: rstudio
   - name: flux-system
     selectors:
       - namespace: flux-system
-  - name: appmesh-system
-    selectors:
-      - namespace: appmesh-system
-  - name: aws-system
+  - name: aws-systems
     selectors:
       - namespace: aws-system
-  - name: cert-manager
-    selectors:
       - namespace: cert-manager
+      
 
 iam:
+## Specify these if you want to use pre-existing roles. 
   # serviceRoleARN: arn:aws:iam::534014647921:role/EKSClusterRole
   # fargatePodExecutionRoleARN: arn:aws:iam::534014647921:role/EKSFargatePodRole
+## You will need to use the values generated when creating the policies. 
   withOIDC: true
   serviceAccounts:
     - metadata:
@@ -36,20 +35,14 @@ iam:
       attachPolicyARNs: 
         - arn:aws:iam::365268860483:policy/AmazonEKS_EFS_CSI_Driver_Policy
     - metadata:
-        name: appmesh-controller
-        namespace: appmesh-system
-      attachPolicyARNs:
-        - arn:aws:iam::aws:policy/AWSCloudMapFullAccess
-        - arn:aws:iam::aws:policy/AWSAppMeshFullAccess
-    - metadata:
         name: aws-lb-controller
         namespace: aws-system
       attachPolicyARNs:
         -  arn:aws:iam::365268860483:policy/AWSLoadBalancerControllerIAMPolicy
-    - metadata:
-        name: cert-manager
-        namespace: cert-maanger
-      attachPolicyARNs:
+    # - metadata:
+    #     name: cert-manager
+    #     namespace: cert-maanger
+    #   attachPolicyARNs:
         - 
 
 addOns:
@@ -65,6 +58,7 @@ addOns:
       ebsCSIController: true
       efsCSICOntroller: true
 
+## To set to a private cluster
   # nat:
   #   gateway: Disable
     # clusterEndpoints:
