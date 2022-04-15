@@ -46,6 +46,11 @@ iam:
         namespace: aws-system
       attachPolicyARNs:
         -  arn:aws:iam::365268860483:policy/AWSLoadBalancerControllerIAMPolicy
+    - metadata:
+        name: cert-manager
+        namespace: cert-maanger
+      attachPolicyARNs:
+        - 
 
 addOns:
   - name: vpc-cni
