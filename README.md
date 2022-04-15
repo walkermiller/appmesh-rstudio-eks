@@ -1,2 +1,2 @@
 ## Architecture
-![](rstudio_eks_solution.png)
+![](diagram/rstudio_eks_solution.png)
