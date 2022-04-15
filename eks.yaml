@@ -80,7 +80,7 @@ gitops:
     gitProvider: github
     flags:
       owner: "walkermiller"
-      repository: "eks-sample-deploy"
+      repository: "rstudio-eks"
       private: "false"
       branch: main
       namespace: flux-system

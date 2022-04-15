@@ -1,0 +1,129 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: efs-claim
+  namespace: rstudio
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 50Gi
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rstudio
+  namespace: rstudio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rstudio
+  template:
+    metadata:
+      labels:
+        app: rstudio
+    spec:
+      containers:
+      - name: rstudio
+        image: rocker/rstudio
+        env:
+          - name: PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: rstudio
+                key: password
+        volumeMounts:
+          - name: persistent-efs
+            mountPath: /data
+      - name: haproxy
+        image: public.ecr.aws/docker/library/haproxy:latest
+        ports:
+          - containerPort: 8088
+        volumeMounts:
+          - name: haproxy
+            mountPath: /usr/local/etc/haproxy
+            readOnly: true
+          - name: certs
+            mountPath: /etc/ssl/certs
+            readOnly: true
+      volumes:
+        - name: haproxy
+          configMap: 
+            name: haproxy
+            items:
+              - key: haproxy.cfg
+                path: haproxy.cfg
+        - name: certs
+          secret:
+            secretName: walkerdev-certs
+            items:
+              - key:  private.pem
+                path: private.pem
+          items:
+        - name: persistent-efs
+          persistentVolumnClaim: efs-claim
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: haproxy
+  namespace: rstudio
+data:
+  haproxy.cfg: |
+    listen haproxy
+      mode http
+      bind *:8080
+      bind *:9099 ssl crt /etc/ssl/certs/private.pem
+      http-request redirect scheme https unless { ssl_fc }
+      server s1 127.0.0.1:8787
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: rstudio-gateway
+  namespace: rstudio
+spec:
+  ports:
+    - port: 443
+      targetPort: 9099
+      name: https
+  selector:
+    app: rstudio
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rstudio-ingress
+  labels:
+    name: rstudio-ingress
+  namespace: rstudio
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/group.name: rstudio.ingress.group
+    alb.ingress.kubernetes.io/target-type: 'ip'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-2:365268860483:certificate/1572418a-715e-406e-9f6f-a5e17870b40b
+    alb.ingress.kubernetes.io/backend-protocol: HTTPS
+    alb.ingress.kubernetes.io/success-codes: 200,302
+    alb.ingress.kubernetes.io/target-group-attributes: load_balancing.algorithm.type=least_outstanding_requests
+    # alb.ingress.kubernetes.io/auth-type: cognito
+    # alb.ingress.kubernetes.io/auth-idp-oidc: '{"issuer":"https://example.com","authorizationEndpoint":"https://authorization.example.com","tokenEndpoint":"https://token.example.com","userInfoEndpoint":"https://userinfo.example.com","secretName":"my-k8s-secret"}'
+spec:
+  rules:
+  - http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: rstudio-gateway
+            port: 
+              number: 443

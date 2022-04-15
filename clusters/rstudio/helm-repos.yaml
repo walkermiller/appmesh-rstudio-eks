@@ -1,0 +1,17 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: ekscharts
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: https://aws.github.io/eks-charts/
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: awspca
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: https://cert-manager.github.io/aws-privateca-issuer
