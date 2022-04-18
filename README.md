@@ -6,14 +6,7 @@
 ```
  aws cloudformation create-stack --stack-name rstudio-efs --template-body  file://efs.yaml
 ```
-### Create EKS Cluster using eksctl
 
-#### Modify eks.yaml as needed. 
-
-#### Create the Cluster
-```
-eksctl create cluster -f eks.yaml   
-```
 ### Generate Certificates
 You can skip this step if you already have generated certs. 
 ```
@@ -32,4 +25,31 @@ cat certs/public.pem >> certs/public_and_private.pem
 ```
 kubectl create secret generic rstudio-certs --from-file=certs/
 ```
+
+### Import Certificate into ACM
+
+### Create EKS Cluster using eksctl
+
+#### Modify eks.yaml as needed. 
+
+#### Create the Cluster
+```
+eksctl create cluster -f eks.yaml   
+```
+
+### Create secret to be used for rstudio password
+```
+kubectl create secret generic rstudio --from-literal=passwword=***********
+```
+
+### Flux
+Flux will be installed to the EKS Cluster when it is created, and will immediately start synching against the git repo specified in it's configuration. 
+#### What Flux will install
+* Help Repose for AWS componenets
+* AWS Load Balancer Controller
+* EFS Components (Storage Class, Persistent Volume, and the Persistent Volume Claim) that enable mounting of EFS
+* All of the components for the RStudio Deployment (Ingress, Services, and the Deployment)
+
+
+
 

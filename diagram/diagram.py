@@ -10,12 +10,19 @@ from diagrams.k8s.group import Namespace
 from diagrams.k8s.storage import PersistentVolume as PV, PersistentVolumeClaim as PVC, Volume
 from diagrams.aws.general import Client
 
+
+# graph_attr = {
+#     # "splines":"curved",
+#     "layout":"neato",
+# }
+
 with Diagram("Rstudio EKS Solution", direction="LR"):
 
     vpc_cluster = Cluster("AWS VPC")
 
 
     with vpc_cluster:
+
         alb = ALB("ALB")
         efs = EFS("Shared and Persistent EFS")
         with Cluster("EKS Cluster"):
