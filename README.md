@@ -26,6 +26,7 @@ cat certs/public.pem >> certs/public_and_private.pem
 ```
 aws acm import-certificate --certificate fileb://certs/public.pem --private-key fileb://certs/private.pem
 ```
+Record the generated ARN, as it will be used when creating EKS cluster resources. You can update it in [](/clusters/rstudio/aws-lb-controller.yaml)
 
 ### Create Profile for the EFS CSI Driver
 ```
