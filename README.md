@@ -21,12 +21,24 @@ openssl x509 -inform PEM -in certs/certificate.crt > certs/public.pem
 cat certs/private.pem >> certs/public_and_private.pem
 cat certs/public.pem >> certs/public_and_private.pem
 ```
-### Create secret in EKS for the certificates
-```
-kubectl create secret generic rstudio-certs --from-file=certs/
-```
 
 ### Import Certificate into ACM
+```
+aws acm import-certificate --certificate fileb://certs/public.pem --private-key fileb://certs/private.pem
+```
+
+### Create Profile for the EFS CSI Driver
+```
+curl -o efs-iam-policy-example.json https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/v1.3.2/docs/iam-policy-example.json
+aws iam create-policy --policy-name AmazonEKS_EFS_CSI_Driver_Policy --policy-document file://efs-iam-policy-example.json
+```
+### Create Profile fo the ALB Controller
+```
+curl -o alb_iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.1/docs/install/iam_policy.json
+aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://alb_iam_policy.json
+```
+
+
 
 ### Create EKS Cluster using eksctl
 
@@ -40,6 +52,11 @@ eksctl create cluster -f eks.yaml
 ### Create secret to be used for rstudio password
 ```
 kubectl create secret generic rstudio --from-literal=passwword=***********
+```
+
+### Create secret in EKS for the certificates
+```
+kubectl create secret generic rstudio-certs --from-file=certs/
 ```
 
 ### Flux
